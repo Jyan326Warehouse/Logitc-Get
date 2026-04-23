@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+
+# Large generated artifacts
+data/logits/
+outputs/
+*.pt
+*.pth
+
+# Runtime logs
+*.log
+nohup.out
