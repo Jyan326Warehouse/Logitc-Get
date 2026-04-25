@@ -169,11 +169,11 @@ def model_stats(model) -> tuple[int, int]:
 
 def run_epoch(model, loader, optimizer, device, epoch: int, log_interval: int):
     model.train()
-    total_loss = 0.0
+    total_weighted_loss = 0.0
     total_samples = 0
     epoch_start = time.perf_counter()
     interval_start = epoch_start
-    interval_loss = 0.0
+    interval_weighted_loss = 0.0
     interval_samples = 0
     interval_steps = 0
 
@@ -190,9 +190,9 @@ def run_epoch(model, loader, optimizer, device, epoch: int, log_interval: int):
 
         batch_loss = loss.item()
         batch_samples = len(x)
-        total_loss += batch_loss
+        total_weighted_loss += batch_loss * batch_samples
         total_samples += batch_samples
-        interval_loss += batch_loss
+        interval_weighted_loss += batch_loss * batch_samples
         interval_samples += batch_samples
         interval_steps += 1
         if batch_idx == 0 or (batch_idx + 1) % log_interval == 0:
@@ -209,7 +209,7 @@ def run_epoch(model, loader, optimizer, device, epoch: int, log_interval: int):
                     total_samples,
                     len(loader.dataset),
                     100.0 * (batch_idx + 1) / len(loader),
-                    interval_loss / max(interval_steps, 1),
+                    interval_weighted_loss / max(interval_samples, 1),
                     avg_step_time,
                     samples_per_sec,
                     format_duration(elapsed),
@@ -217,11 +217,11 @@ def run_epoch(model, loader, optimizer, device, epoch: int, log_interval: int):
                 )
             )
             interval_start = now
-            interval_loss = 0.0
+            interval_weighted_loss = 0.0
             interval_samples = 0
             interval_steps = 0
 
-    avg_loss = total_loss / len(loader)
+    avg_loss = total_weighted_loss / max(total_samples, 1)
     epoch_time = time.perf_counter() - epoch_start
     print(
         "====> Epoch: {} Average MSE: {:.6f}\tEpochTime: {}\tAvgSamples/s: {:.1f}".format(
@@ -237,16 +237,18 @@ def run_epoch(model, loader, optimizer, device, epoch: int, log_interval: int):
 @torch.no_grad()
 def evaluate(model, loader, device):
     model.eval()
-    total_loss = 0.0
+    total_weighted_loss = 0.0
     total_samples = 0
     eval_start = time.perf_counter()
     for batch in loader:
         x = extract_inputs(batch, device)
         recon_x = model(x)
-        total_loss += mse_loss(recon_x, x).item()
-        total_samples += len(x)
+        batch_loss = mse_loss(recon_x, x).item()
+        batch_samples = len(x)
+        total_weighted_loss += batch_loss * batch_samples
+        total_samples += batch_samples
 
-    avg_loss = total_loss / len(loader)
+    avg_loss = total_weighted_loss / max(total_samples, 1)
     eval_time = time.perf_counter() - eval_start
     print(
         "====> Test set MSE: {:.6f}\tEvalTime: {}\tEvalSamples/s: {:.1f}".format(
