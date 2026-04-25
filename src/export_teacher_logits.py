@@ -17,6 +17,11 @@ Question:
 Answer:
 """
 
+LIGHTWEIGHT_SPLIT_SAMPLES = {
+    "train": 3200,
+    "test": 800,
+}
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -53,7 +58,12 @@ def parse_args():
         "--max_samples",
         type=int,
         default=None,
-        help="限制导出样本数；默认导出整个 split",
+        help="限制导出样本数；默认轻量导出 train=3200/test=800",
+    )
+    parser.add_argument(
+        "--full_split",
+        action="store_true",
+        help="导出整个 split，覆盖默认轻量样本数",
     )
     parser.add_argument(
         "--start_idx",
@@ -174,6 +184,12 @@ def main():
     args = parse_args()
 
     resolved_split = resolve_dataset_split(args.dataset_name, args.split)
+    if args.full_split:
+        effective_max_samples = None
+    elif args.max_samples is not None:
+        effective_max_samples = args.max_samples
+    else:
+        effective_max_samples = LIGHTWEIGHT_SPLIT_SAMPLES.get(resolved_split)
 
     project_root = Path(__file__).resolve().parent.parent
     output_root = (project_root / args.output_root).resolve()
@@ -189,6 +205,7 @@ def main():
     print(f"model_path   = {args.model_path}")
     print(f"dataset      = {args.dataset_name}/{args.dataset_config}")
     print(f"split        = {resolved_split}")
+    print(f"max_samples  = {effective_max_samples}")
     print(f"output_root  = {output_root}")
     print(f"meta_path    = {meta_path}")
     print(f"load_dtype   = {load_dtype}")
@@ -225,7 +242,11 @@ def main():
 
     dataset = load_dataset(args.dataset_name, args.dataset_config, split=resolved_split)
 
-    end_idx = len(dataset) if args.max_samples is None else min(len(dataset), args.start_idx + args.max_samples)
+    end_idx = (
+        len(dataset)
+        if effective_max_samples is None
+        else min(len(dataset), args.start_idx + effective_max_samples)
+    )
     indices = list(range(args.start_idx, end_idx))
 
     print(f"Total dataset size = {len(dataset)}")

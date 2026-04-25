@@ -11,6 +11,7 @@ from model import build_model
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_DATA_ROOT = PROJECT_ROOT / "data"
+DEFAULT_TEST_SAMPLES = 800
 
 
 def parse_args():
@@ -19,7 +20,7 @@ def parse_args():
     parser.add_argument("--data-root", type=str, default=str(DEFAULT_DATA_ROOT))
     parser.add_argument("--dataset-config", type=str, default="main")
     parser.add_argument("--split", type=str, default="test")
-    parser.add_argument("--max-samples", type=int, default=None)
+    parser.add_argument("--max-samples", type=int, default=DEFAULT_TEST_SAMPLES)
     parser.add_argument("--cache-size", type=int, default=8)
     parser.add_argument("--batch-size", type=int, default=8)
     parser.add_argument("--num-workers", type=int, default=0)
