@@ -1,3 +1,4 @@
 * text=auto eol=lf
 
 *.ps1 text eol=crlf
+outputs/tokenlist_ae_all_text_rebuilt_4000/best_tokenlist_ae.pt filter=lfs diff=lfs merge=lfs -text

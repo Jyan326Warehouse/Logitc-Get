@@ -1,0 +1,67 @@
+{
+  "token_list_json": "outputs\\gsm_token_list_all_text_rebuilt_4000\\gsm_token_list.json",
+  "meta": {
+    "build_mode": "all_text",
+    "final_k": 9839,
+    "coverage_definition": "text coverage uses tokenizer ids from meta full_text; answer coverage uses answer_token_ids from logits .pt files."
+  },
+  "splits": {
+    "train": {
+      "full_text": {
+        "meta_jsonl": "data\\meta\\ae_train.jsonl",
+        "total_text_tokens": 585776,
+        "covered_text_tokens": 585776,
+        "oov_text_tokens": 0,
+        "text_token_coverage": 1.0,
+        "text_oov_rate": 0.0
+      },
+      "answer_targets": {
+        "logits_dir": "data\\logits\\ae_train",
+        "num_files": 3000,
+        "total_answer_positions": 364980,
+        "covered_answer_positions": 364980,
+        "oov_answer_positions": 0,
+        "answer_token_coverage": 1.0,
+        "answer_oov_rate": 0.0
+      }
+    },
+    "val": {
+      "full_text": {
+        "meta_jsonl": "data\\meta\\ae_val.jsonl",
+        "total_text_tokens": 38151,
+        "covered_text_tokens": 37562,
+        "oov_text_tokens": 589,
+        "text_token_coverage": 0.9845613483263872,
+        "text_oov_rate": 0.01543865167361275
+      },
+      "answer_targets": {
+        "logits_dir": "data\\logits\\ae_val",
+        "num_files": 200,
+        "total_answer_positions": 23591,
+        "covered_answer_positions": 23350,
+        "oov_answer_positions": 241,
+        "answer_token_coverage": 0.989784239752448,
+        "answer_oov_rate": 0.010215760247552032
+      }
+    },
+    "test": {
+      "full_text": {
+        "meta_jsonl": "data\\meta\\main_test.jsonl",
+        "total_text_tokens": 157926,
+        "covered_text_tokens": 155438,
+        "oov_text_tokens": 2488,
+        "text_token_coverage": 0.9842457860010385,
+        "text_oov_rate": 0.015754213998961538
+      },
+      "answer_targets": {
+        "logits_dir": "data\\logits\\main_test",
+        "num_files": 0,
+        "total_answer_positions": 0,
+        "covered_answer_positions": 0,
+        "oov_answer_positions": 0,
+        "answer_token_coverage": 0.0,
+        "answer_oov_rate": 0.0
+      }
+    }
+  }
+}

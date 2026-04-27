@@ -11,9 +11,14 @@ data/logits/
 data/hidden/
 data/hidden_latents/
 data/meta/logits_*.jsonl
-outputs/
+outputs/*
+!outputs/gsm_token_list_all_text_rebuilt_4000/
+!outputs/gsm_token_list_all_text_rebuilt_4000/**
+!outputs/tokenlist_ae_all_text_rebuilt_4000/
+!outputs/tokenlist_ae_all_text_rebuilt_4000/**
 models/
 *.pt
+!outputs/tokenlist_ae_all_text_rebuilt_4000/best_tokenlist_ae.pt
 *.pth
 *.safetensors
 
