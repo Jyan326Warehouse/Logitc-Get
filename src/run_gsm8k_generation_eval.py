@@ -25,6 +25,9 @@ Answer:
 """
 
 FINAL_ANSWER_RE = re.compile(r"####\s*([-+]?(?:\d+(?:,\d{3})*|\d+)(?:\.\d+)?)")
+FINAL_ANSWER_COMPLETE_RE = re.compile(
+    r"####\s*([-+]?(?:\d+(?:,\d{3})*|\d+)(?:\.\d+)?)(?:\s*(?:\n|\r))"
+)
 NUMBER_RE = re.compile(r"[-+]?(?:\d+(?:,\d{3})*|\d+)(?:\.\d+)?")
 ANSWER_CUE_RE = re.compile(
     r"(?:"
@@ -238,6 +241,17 @@ def extract_marked_final_answer(text: str) -> Optional[str]:
     return None
 
 
+def extract_complete_marked_final_answer(text: str) -> Optional[str]:
+    if not text:
+        return None
+
+    final_matches = FINAL_ANSWER_COMPLETE_RE.findall(text)
+    if final_matches:
+        return final_matches[-1]
+
+    return None
+
+
 def extract_answer_cue(text: str) -> Optional[str]:
     if not text:
         return None
@@ -267,7 +281,7 @@ def extract_final_answer(text: str) -> Optional[str]:
 
 
 def has_stopping_answer(text: str) -> bool:
-    return extract_marked_final_answer(text) is not None or extract_answer_cue(text) is not None
+    return extract_complete_marked_final_answer(text) is not None
 
 
 def decimal_or_none(value: Optional[str]) -> Optional[Decimal]:
