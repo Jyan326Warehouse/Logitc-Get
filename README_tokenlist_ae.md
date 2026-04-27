@@ -190,3 +190,57 @@ outputs/tokenlist_ae_all_text_rebuilt_4000/final_metrics.json
 outputs/tokenlist_ae_all_text_rebuilt_4000/test_eval/eval_metrics.json
 outputs/tokenlist_ae_all_text_rebuilt_4000/test_eval/eval_predictions_sample.jsonl
 ```
+
+## Generation-Time AE Intervention
+
+After the AE checkpoint exists, you can evaluate whether the token-aligned
+latent helps GSM8K answer generation without fine-tuning the LLM.
+
+On a cloud machine, first verify that the local Qwen3-8B directory is complete:
+
+```bash
+python scripts/check_model_files.py \
+  --model-path ~/autodl-fs/model/Qwen3-8B \
+  --trust-remote-code
+```
+
+The baseline mode uses the model's normal full-vocabulary next-token logits.
+The `ae_latent` mode gathers the model logits into `T_GSM`, runs the trained AE
+encoder, and decodes the next token directly from `latent_logits_k` over the
+token list. The `ae_recon` mode uses decoder outputs. The `*_patch` modes keep
+the full vocabulary available but replace only the `T_GSM` slice with AE logits
+before softmax.
+
+Recommended cloud command for the first full comparison:
+
+```powershell
+python src/run_gsm8k_generation_eval.py `
+  --model-path models/Qwen3-8B `
+  --input-meta data/meta/main_test.jsonl `
+  --output-dir outputs/gsm8k_generation_eval_rebuilt_4000 `
+  --modes baseline ae_latent ae_latent_patch `
+  --token-list-json outputs/gsm_token_list_all_text_rebuilt_4000/gsm_token_list.json `
+  --checkpoint outputs/tokenlist_ae_all_text_rebuilt_4000/best_tokenlist_ae.pt `
+  --max-new-tokens 512 `
+  --decode greedy `
+  --load-dtype bfloat16 `
+  --device-map auto `
+  --ae-device auto `
+  --trust-remote-code
+```
+
+For a quick smoke test on cloud, add:
+
+```powershell
+--max-samples 20 --log-every 1
+```
+
+Generation outputs:
+
+```text
+outputs/gsm8k_generation_eval_rebuilt_4000/baseline/metrics.json
+outputs/gsm8k_generation_eval_rebuilt_4000/baseline/predictions.jsonl
+outputs/gsm8k_generation_eval_rebuilt_4000/ae_latent/metrics.json
+outputs/gsm8k_generation_eval_rebuilt_4000/ae_latent/predictions.jsonl
+outputs/gsm8k_generation_eval_rebuilt_4000/summary_metrics.json
+```

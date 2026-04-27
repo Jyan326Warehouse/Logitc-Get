@@ -24,6 +24,7 @@ teacher logits are treated as generated artifacts and are not committed.
 - `src/tokenlist_ae_model.py`: define `GSMTokenListAE`, with latent dim exactly `K`.
 - `src/train_tokenlist_ae.py`: train KL + latent CE token-list AE.
 - `src/eval_tokenlist_ae.py`: evaluate KL, CE, top-k accuracy, rank, and OOV stats.
+- `src/run_gsm8k_generation_eval.py`: compare normal GSM8K generation with token-list AE latent intervention.
 - `README_tokenlist_ae.md`: full command flow.
 
 ## Quick Flow
@@ -122,3 +123,36 @@ outputs/tokenlist_ae_all_text/test_eval/eval_predictions_sample.jsonl
 ```
 
 See `README_tokenlist_ae.md` for details.
+
+## Generation-Time Baseline vs AE
+
+To test whether the trained token-list AE helps GSM8K generation without
+fine-tuning Qwen3-8B, run:
+
+```powershell
+python src/run_gsm8k_generation_eval.py `
+  --model-path models/Qwen3-8B `
+  --input-meta data/meta/main_test.jsonl `
+  --output-dir outputs/gsm8k_generation_eval_rebuilt_4000 `
+  --modes baseline ae_latent ae_latent_patch `
+  --token-list-json outputs/gsm_token_list_all_text_rebuilt_4000/gsm_token_list.json `
+  --checkpoint outputs/tokenlist_ae_all_text_rebuilt_4000/best_tokenlist_ae.pt `
+  --max-new-tokens 512 `
+  --decode greedy `
+  --load-dtype bfloat16 `
+  --device-map auto `
+  --ae-device auto `
+  --trust-remote-code
+```
+
+This writes per-mode `metrics.json`, `predictions.jsonl`, and a combined
+`summary_metrics.json`.
+
+Before running on a cloud machine, verify that the local Qwen3-8B directory is
+complete:
+
+```bash
+python scripts/check_model_files.py \
+  --model-path ~/autodl-fs/model/Qwen3-8B \
+  --trust-remote-code
+```
