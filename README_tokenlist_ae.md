@@ -24,6 +24,12 @@ GSM8K train text plus any train answer targets that must be forced in for CE.
 
 ## Step 1: Export Teacher Logits
 
+Install dependencies:
+
+```powershell
+python -m pip install -r requirements.txt
+```
+
 Use the existing teacher logits exporter. It writes `answer_logits: [T, V]` and both
 `answer_token_ids: [T]` and legacy-compatible `answer_ids: [T]`.
 
@@ -147,3 +153,40 @@ outputs/tokenlist_ae_all_text/test_eval/eval_predictions_sample.jsonl
 Teacher logits, model weights, checkpoints, logs, and other large generated
 artifacts are intentionally ignored by git. Regenerate them with the scripts in
 `scripts/` when moving to a new machine.
+
+## Reproduce Current 4000-Sample Run
+
+The committed metadata split has 3000 train, 200 val, and 800 test samples. The
+current run used `models/Qwen3-8B` as teacher/tokenizer and produced `K = 9839`
+for the all-text GSM token list.
+
+Run the full train pipeline:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/run_tokenlist_ae_train_pipeline.ps1 `
+  -Python "D:\Junyi_Files\conda-envs\logitc-get\python.exe" `
+  -ModelPath "models\Qwen3-8B"
+```
+
+Then run test evaluation:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/run_tokenlist_ae_test_eval.ps1 `
+  -Python "D:\Junyi_Files\conda-envs\logitc-get\python.exe" `
+  -ModelPath "models\Qwen3-8B"
+```
+
+If your conda environment is already activated, you can omit `-Python`; the
+scripts default to `python`.
+
+Expected files:
+
+```text
+outputs/gsm_token_list_all_text_rebuilt_4000/gsm_token_list.json
+outputs/gsm_token_list_all_text_rebuilt_4000/token_list_coverage_report.json
+outputs/tokenlist_ae_all_text_rebuilt_4000/best_tokenlist_ae.pt
+outputs/tokenlist_ae_all_text_rebuilt_4000/train_metrics.jsonl
+outputs/tokenlist_ae_all_text_rebuilt_4000/final_metrics.json
+outputs/tokenlist_ae_all_text_rebuilt_4000/test_eval/eval_metrics.json
+outputs/tokenlist_ae_all_text_rebuilt_4000/test_eval/eval_predictions_sample.jsonl
+```

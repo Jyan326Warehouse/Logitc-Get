@@ -1,11 +1,14 @@
+param(
+  [string]$Python = "python",
+  [string]$ModelPath = "models\Qwen3-8B"
+)
+
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
 Set-Location $ProjectRoot
 
-$Python = "D:\Junyi_Files\conda-envs\logitc-get\python.exe"
-$ModelPath = "models\Qwen3-8B"
 $TokenListJson = "outputs\gsm_token_list_all_text_rebuilt_4000\gsm_token_list.json"
 $Checkpoint = "outputs\tokenlist_ae_all_text_rebuilt_4000\best_tokenlist_ae.pt"
 $EvalOutputDir = "outputs\tokenlist_ae_all_text_rebuilt_4000\test_eval"

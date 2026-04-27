@@ -28,6 +28,47 @@ teacher logits are treated as generated artifacts and are not committed.
 
 ## Quick Flow
 
+Install dependencies first. For CUDA training, keep the CUDA-enabled PyTorch
+build from your conda environment or install the matching PyTorch wheel from
+the official PyTorch index before running the long jobs.
+
+```powershell
+python -m pip install -r requirements.txt
+```
+
+The repository already includes the 4000-sample metadata split used by the
+current run: 3000 train, 200 val, and 800 test records. Put the Qwen3-8B teacher
+at `models/Qwen3-8B`, then run the same pipeline that produced the current
+checkpoint and metrics:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/run_tokenlist_ae_train_pipeline.ps1 `
+  -Python "D:\Junyi_Files\conda-envs\logitc-get\python.exe" `
+  -ModelPath "models\Qwen3-8B"
+
+powershell -ExecutionPolicy Bypass -File scripts/run_tokenlist_ae_test_eval.ps1 `
+  -Python "D:\Junyi_Files\conda-envs\logitc-get\python.exe" `
+  -ModelPath "models\Qwen3-8B"
+```
+
+On another machine, replace `-Python` with that machine's environment Python,
+or omit it after activating the environment.
+
+These scripts reproduce the current 4000-sample configuration:
+
+```text
+outputs/gsm_token_list_all_text_rebuilt_4000/gsm_token_list.json
+outputs/gsm_token_list_all_text_rebuilt_4000/token_list_coverage_report.json
+outputs/tokenlist_ae_all_text_rebuilt_4000/best_tokenlist_ae.pt
+outputs/tokenlist_ae_all_text_rebuilt_4000/train_metrics.jsonl
+outputs/tokenlist_ae_all_text_rebuilt_4000/final_metrics.json
+outputs/tokenlist_ae_all_text_rebuilt_4000/test_eval/eval_metrics.json
+outputs/tokenlist_ae_all_text_rebuilt_4000/test_eval/eval_predictions_sample.jsonl
+```
+
+For reference, this run produced `K = 9839`, compared with the Qwen3-8B full
+vocabulary size `151936`.
+
 ```powershell
 python src/export_teacher_logits.py `
   --model-path models/Qwen3-8B `
