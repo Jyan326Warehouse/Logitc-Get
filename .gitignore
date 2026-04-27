@@ -1,0 +1,33 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Large generated artifacts
+data/logits/
+data/hidden/
+data/hidden_latents/
+data/meta/logits_*.jsonl
+outputs/
+models/
+*.pt
+*.pth
+*.safetensors
+
+# Runtime logs
+logs/
+*.log
+nohup.out
+
+# Local/editor/system files
+.env
+.env.*
+.vscode/
+.idea/
+*.zip
+Thumbs.db
+.DS_Store
+legacy_unused/

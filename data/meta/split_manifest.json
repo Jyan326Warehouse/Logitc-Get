@@ -1,0 +1,28 @@
+{
+  "dataset_name": "openai/gsm8k",
+  "dataset_config": "main",
+  "seed": 42,
+  "total_records": 4000,
+  "splits": {
+    "train": {
+      "records": 3000,
+      "source_split": "gsm8k train"
+    },
+    "val": {
+      "records": 200,
+      "source_split": "gsm8k train"
+    },
+    "test": {
+      "records": 800,
+      "source_split": "gsm8k test"
+    }
+  },
+  "files": {
+    "train": "data/meta/train.jsonl",
+    "val": "data/meta/val.jsonl",
+    "test": "data/meta/test.jsonl",
+    "ae_train_alias": "data/meta/ae_train.jsonl",
+    "ae_val_alias": "data/meta/ae_val.jsonl",
+    "main_test_alias": "data/meta/main_test.jsonl"
+  }
+}
