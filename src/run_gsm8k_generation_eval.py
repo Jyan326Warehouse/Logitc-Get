@@ -26,6 +26,19 @@ Answer:
 
 FINAL_ANSWER_RE = re.compile(r"####\s*([-+]?(?:\d+(?:,\d{3})*|\d+)(?:\.\d+)?)")
 NUMBER_RE = re.compile(r"[-+]?(?:\d+(?:,\d{3})*|\d+)(?:\.\d+)?")
+ANSWER_CUE_RE = re.compile(
+    r"(?:"
+    r"(?:final\s+answer|the\s+answer|answer)\s*(?:is|:)?"
+    r"|(?:so|therefore),?\s+(?:the\s+)?answer\s*(?:is|:)?"
+    r")"
+    r"[^\n\r\d+\-]{0,80}"
+    r"([-+]?(?:\d+(?:,\d{3})*|\d+)(?:\.\d+)?)",
+    re.IGNORECASE,
+)
+FINAL_ANSWER_FORMAT_INSTRUCTION = (
+    "When you finish, write the final answer on its own line exactly as:\n"
+    "#### <number>"
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -94,7 +107,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--stop-after-final-answer",
         action="store_true",
-        help="Stop early once generated text contains a GSM8K-style '#### number'.",
+        help="Stop early once generated text contains a final-answer marker or answer cue.",
+    )
+    parser.add_argument(
+        "--append-final-answer-format-instruction",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Append an instruction asking the model to finish with '#### <number>'.",
     )
     return parser.parse_args()
 
@@ -163,17 +182,38 @@ def read_jsonl(path: Path, max_samples: Optional[int]) -> List[Dict]:
     return records
 
 
-def build_prompt(record: Dict) -> str:
+def add_final_answer_format_instruction(prompt_text: str) -> str:
+    if "#### <number>" in prompt_text or "####" in prompt_text:
+        return prompt_text
+
+    marker = "Answer:"
+    marker_idx = prompt_text.rfind(marker)
+    if marker_idx >= 0:
+        prefix = prompt_text[:marker_idx].rstrip()
+        suffix = prompt_text[marker_idx:]
+        return f"{prefix}\n\n{FINAL_ANSWER_FORMAT_INSTRUCTION}\n\n{suffix}"
+
+    return f"{prompt_text.rstrip()}\n\n{FINAL_ANSWER_FORMAT_INSTRUCTION}\n\nAnswer:\n"
+
+
+def build_prompt(record: Dict, append_final_answer_format_instruction: bool = False) -> str:
     prompt_text = str(record.get("prompt_text") or record.get("prompt") or "")
     if prompt_text:
+        if append_final_answer_format_instruction:
+            return add_final_answer_format_instruction(prompt_text)
         return prompt_text
 
     question = str(record.get("question") or record.get("input") or "").strip()
     if question:
-        return PROMPT_TEMPLATE.format(question=question)
+        prompt = PROMPT_TEMPLATE.format(question=question)
+        if append_final_answer_format_instruction:
+            return add_final_answer_format_instruction(prompt)
+        return prompt
 
     text = str(record.get("text") or "").strip()
     if text:
+        if append_final_answer_format_instruction:
+            return add_final_answer_format_instruction(text)
         return text
 
     raise KeyError("Record is missing prompt_text/prompt/question/input/text")
@@ -198,10 +238,24 @@ def extract_marked_final_answer(text: str) -> Optional[str]:
     return None
 
 
+def extract_answer_cue(text: str) -> Optional[str]:
+    if not text:
+        return None
+
+    matches = ANSWER_CUE_RE.findall(text)
+    if matches:
+        return matches[-1]
+
+    return None
+
+
 def extract_final_answer(text: str) -> Optional[str]:
     marked = extract_marked_final_answer(text)
     if marked is not None:
         return marked
+    cued = extract_answer_cue(text)
+    if cued is not None:
+        return cued
     if not text:
         return None
 
@@ -210,6 +264,10 @@ def extract_final_answer(text: str) -> Optional[str]:
         return number_matches[-1]
 
     return None
+
+
+def has_stopping_answer(text: str) -> bool:
+    return extract_marked_final_answer(text) is not None or extract_answer_cue(text) is not None
 
 
 def decimal_or_none(value: Optional[str]) -> Optional[Decimal]:
@@ -497,7 +555,7 @@ def generate_one(
 
         if args.stop_after_final_answer:
             partial_text = tokenizer.decode(generated_ids, skip_special_tokens=True)
-            if extract_marked_final_answer(partial_text) is not None:
+            if has_stopping_answer(partial_text):
                 break
 
         next_input_ids = torch.tensor([[int(next_token_id)]], dtype=torch.long, device=input_device)
@@ -581,7 +639,10 @@ def run_mode(
     totals = empty_totals()
     for idx, record in enumerate(records, start=1):
         sample_id = get_sample_id(record, idx - 1)
-        prompt_text = build_prompt(record)
+        prompt_text = build_prompt(
+            record,
+            append_final_answer_format_instruction=args.append_final_answer_format_instruction,
+        )
         gold_raw = record_gold_text(record)
         gold_answer = extract_final_answer(gold_raw)
 
