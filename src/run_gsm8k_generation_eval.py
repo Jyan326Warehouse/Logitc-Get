@@ -164,7 +164,7 @@ def read_jsonl(path: Path, max_samples: Optional[int]) -> List[Dict]:
 
 
 def build_prompt(record: Dict) -> str:
-    prompt_text = str(record.get("prompt_text") or record.get("prompt") or "").strip()
+    prompt_text = str(record.get("prompt_text") or record.get("prompt") or "")
     if prompt_text:
         return prompt_text
 
@@ -187,13 +187,23 @@ def record_gold_text(record: Dict) -> str:
     return ""
 
 
-def extract_final_answer(text: str) -> Optional[str]:
+def extract_marked_final_answer(text: str) -> Optional[str]:
     if not text:
         return None
 
     final_matches = FINAL_ANSWER_RE.findall(text)
     if final_matches:
         return final_matches[-1]
+
+    return None
+
+
+def extract_final_answer(text: str) -> Optional[str]:
+    marked = extract_marked_final_answer(text)
+    if marked is not None:
+        return marked
+    if not text:
+        return None
 
     number_matches = NUMBER_RE.findall(text)
     if number_matches:
@@ -487,7 +497,7 @@ def generate_one(
 
         if args.stop_after_final_answer:
             partial_text = tokenizer.decode(generated_ids, skip_special_tokens=True)
-            if extract_final_answer(partial_text) is not None:
+            if extract_marked_final_answer(partial_text) is not None:
                 break
 
         next_input_ids = torch.tensor([[int(next_token_id)]], dtype=torch.long, device=input_device)
