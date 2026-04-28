@@ -1,0 +1,46 @@
+{
+  "source": "SetFit/sst5",
+  "huggingface_url": "https://huggingface.co/datasets/SetFit/sst5",
+  "saved_formats": {
+    "hf_dataset": "data/sst5/hf_dataset",
+    "jsonl": "data/sst5/jsonl"
+  },
+  "splits": {
+    "train": {
+      "num_rows": 8544,
+      "jsonl_path": "data/sst5/jsonl/train.jsonl"
+    },
+    "validation": {
+      "num_rows": 1101,
+      "jsonl_path": "data/sst5/jsonl/validation.jsonl"
+    },
+    "test": {
+      "num_rows": 2210,
+      "jsonl_path": "data/sst5/jsonl/test.jsonl"
+    }
+  },
+  "features": {
+    "train": {
+      "text": "Value('string')",
+      "label": "Value('int64')",
+      "label_text": "Value('string')"
+    },
+    "validation": {
+      "text": "Value('string')",
+      "label": "Value('int64')",
+      "label_text": "Value('string')"
+    },
+    "test": {
+      "text": "Value('string')",
+      "label": "Value('int64')",
+      "label_text": "Value('string')"
+    }
+  },
+  "label_names": [
+    "very negative",
+    "negative",
+    "neutral",
+    "positive",
+    "very positive"
+  ]
+}

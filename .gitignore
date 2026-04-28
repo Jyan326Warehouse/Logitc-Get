@@ -8,9 +8,12 @@ venv/
 
 # Large generated artifacts
 data/logits/
+data/full/
 data/hidden/
 data/hidden_latents/
 data/meta/logits_*.jsonl
+data/sst5/hf_dataset/
+data/sst5/teacher_logits/
 outputs/*
 !outputs/gsm_token_list_all_text_rebuilt_4000/
 !outputs/gsm_token_list_all_text_rebuilt_4000/**
@@ -26,6 +29,9 @@ models/
 logs/
 *.log
 nohup.out
+.claude/
+legacy_outputs_src_archive/
+original_ae_code_from_git/
 
 # Local/editor/system files
 .env

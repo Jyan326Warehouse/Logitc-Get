@@ -1,0 +1,23 @@
+{
+  "train_cache": "data/sst5/teacher_logits/YOUR_TEACHER/train.pt",
+  "val_cache": "data/sst5/teacher_logits/YOUR_TEACHER/validation.pt",
+  "output_dir": "outputs/sst5_content_ae",
+  "expected_num_labels": 5,
+  "batch_size": 16,
+  "epochs": 20,
+  "lr": 0.00005,
+  "weight_decay": 0.0001,
+  "fusion_hidden_dim": 512,
+  "encoder_hidden_dim": 512,
+  "decoder_hidden_dim": 512,
+  "dropout": 0.1,
+  "temperature": 1.0,
+  "ce_weight": 0.5,
+  "kl_weight": 0.5,
+  "verify_target_onehot": true,
+  "num_workers": 0,
+  "device": "auto",
+  "seed": 42,
+  "log_every": 20,
+  "logits_dtype": "float32"
+}
