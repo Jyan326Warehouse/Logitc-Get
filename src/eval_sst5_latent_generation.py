@@ -282,7 +282,8 @@ def generate_k_space(
         if use_latent:
             if ae_model is None:
                 raise ValueError("ae_model is required for latent generation")
-            ae_input = input_logitc_K.unsqueeze(1)
+            ae_dtype = next(ae_model.parameters()).dtype
+            ae_input = input_logitc_K.to(dtype=ae_dtype).unsqueeze(1)
             with torch.no_grad():
                 outputs = ae_model(ae_input)
             next_logits_K = outputs["latent_logits"][:, -1, :]
